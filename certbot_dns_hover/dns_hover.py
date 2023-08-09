@@ -113,7 +113,7 @@ class _HoverClient(object):
         self.session.headers['Referer'] = self.hoverBaseUrl
 
         try:
-            result = self._request('GET','signin',json=False) // initializing cookie hoversession
+            result = self._request('GET','signin',json=False) # initializing cookie hoversession
         except Exception as ex:
             logger.error('Failed to get URL {0}: {1}'.format(self._get_url('signin'), ex))
             self.loggedIn = False
@@ -131,7 +131,7 @@ class _HoverClient(object):
         if result.get("status", "")!="need_2fa":
             logger.error("Status 'need_2fa' expected but got {0}.".format(result.get("status")))
             self.loggedIn = False
-            raise ValueError("Status 'need_2fa' expected but got {0}.".format(result.get("status"))))
+            raise ValueError("Status 'need_2fa' expected but got {0}.".format(result.get("status")))
 
         try:
             totp = TOTP(self.totpsecret)
@@ -249,7 +249,7 @@ class _HoverClient(object):
             logger.info('  -> successfully deleted txt record')
 
 
-class TOTP(Object):
+class TOTP(object):
     """
     Handler for time-based OTP counters.
     """
@@ -348,5 +348,4 @@ class TOTP(Object):
             return int(calendar.timegm(for_time.utctimetuple()) / self.interval)
         else:
             return int(time.mktime(for_time.timetuple()) / self.interval)
-
 
