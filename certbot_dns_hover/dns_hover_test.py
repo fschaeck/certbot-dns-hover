@@ -1,4 +1,4 @@
-"""Tests for certbot_dns_hover.dns_hove."""
+"""Tests for certbot_dns_hover.dns_hover"""
 
 import unittest
 
@@ -12,35 +12,35 @@ from certbot.plugins import dns_test_common
 from certbot.plugins.dns_test_common import DOMAIN
 from certbot.tests import util as test_util
 
-FAKE_USER = "remoteuser"
+FAKE_USER = "hoveruser"
 FAKE_PW = "password"
 FAKE_ENDPOINT = "mock://endpoint"
+FAKE_TOTP_SECRET = "wowowowowowowowo"
 
-
-class AuthenticatorTest(
-    test_util.TempDirTestCase, dns_test_common.BaseAuthenticatorTest
-):
+class AuthenticatorTest(test_util.TempDirTestCase,
+                        dns_test_common.BaseAuthenticatorTest):
     def setUp(self):
         super(AuthenticatorTest, self).setUp()
 
-        from certbot_dns_ispconfig.dns_ispconfig import Authenticator
+        from certbot_dns_hover.dns_hover import Authenticator
 
         path = os.path.join(self.tempdir, "file.ini")
         dns_test_common.write(
             {
-                "ispconfig_username": FAKE_USER,
-                "ispconfig_password": FAKE_PW,
-                "ispconfig_endpoint": FAKE_ENDPOINT,
+                "dns_hover_hoverurl": FAKE_ENDPOINT,
+                "dns_hover_username": FAKE_USER,
+                "dns_hover_password": FAKE_PW,
+                "dns_hover_totpsecret" : FAKE_TOTP_SECRET,
             },
             path,
         )
 
         super(AuthenticatorTest, self).setUp()
         self.config = mock.MagicMock(
-            ispconfig_credentials=path, ispconfig_propagation_seconds=0
+            dns_hover_credentials=path, dns_hover_propagation_seconds=0
         )  # don't wait during tests
 
-        self.auth = Authenticator(self.config, "ispconfig")
+        self.auth = Authenticator(self.config, "dns_hover")
 
         self.mock_client = mock.MagicMock()
         # _get_ispconfig_client | pylint: disable=protected-access
