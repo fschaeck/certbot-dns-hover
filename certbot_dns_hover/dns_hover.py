@@ -68,27 +68,27 @@ class Authenticator(dns_common.DNSAuthenticator):
                                     self.credentials.conf("totpsecret"),
                                     logger=logger
                                 )
-        except HoverClientException as ex:
+        except BaseException as ex:
             raise errors.PluginError(str(ex)) from ex
 
     def _perform(self, domain, validation_name, validation):
         self.challenge_count += 1
         try:
             self.hover_client.add_record(domain, 'TXT', validation_name, validation)
-        except Exception as ex:
+        except BaseException as ex:
             raise errors.PluginError("Adding TXT record for ACME challenge failed: {0}".format(str(ex))) from ex
 
     def _cleanup(self, domain, validation_name, validation):
         try:
             self.hover_client.delete_record(domain, 'TXT', validation_name, validation)
-        except Exception as ex:
+        except BaseException as ex:
             logger.warning("Deleting TXT record from ACME challege failed: {0}".format(str(ex)))
 
         self.challenge_count -= 1
         if self.challenge_count<=0:
             try:
                 self.hover_client.logout()
-            except Exception as ex:
+            except BaseException as ex:
                 logger.warning("Logging out of {0} failed: {1}".format(self.credentials.conf("hoverurl"), str(ex)))
 
 
