@@ -58,10 +58,12 @@ Credentials
 An example ``credentials.ini`` file:
 
 .. code-block:: ini
+
    certbot_dns_hover:dns_hover_hoverurl = https://www.hover.com
    certbot_dns_hover:dns_hover_username = my-hover-admin-username
    certbot_dns_hover:dns_hover_password = very-secure-hover-admin-user-password
    certbot_dns_hover:dns_hover_totpsecret = very-very-secure-2fa-totp-secret
+
 
 The path to this file can be provided interactively or using the
 ``--certbot-dns-hover:dns-hover-credentials`` command-line argument. Certbot

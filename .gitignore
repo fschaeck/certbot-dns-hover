@@ -1,2 +1,4 @@
+/certbot_dns_hover.egg-info
+/dist
 __pycache__/
 *.py[cdo]

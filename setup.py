@@ -25,9 +25,10 @@ setup(
     version=version,
     description="Hover (www.hover.com) DNS Authenticator plugin for Certbot",
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     url='https://github.com/fschaeck/certbot-dns-hover',
     author="Frank Schäckermann",
-    author_email='certbot.hover-fschaeckermann:snkmail.com',
+    author_email='certbot.hover-fschaeckermann@snkmail.com',
     license='Apache License 2.0',
     python_requires='>=2.7, !=3.0.*, !=3.1.*, != 3.2.*, !=3.3.*',
     classifiers=[

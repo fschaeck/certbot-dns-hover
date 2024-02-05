@@ -21,8 +21,11 @@ Administration credentials, obtained from your DNSimple
    :name: credentials.ini
    :caption: Example credentials file:
    # Hover Domain Adminstration credentials used by Certbot
+   dns_hover_hoverurl = https://www.hover.com
    dns_hover_username = myispremoteuser
    dns_hover_password = mysecretpassword
+   dns_hover_totpsecret = ultrasecuretotpsecret
+
 The path to this file can be provided interactively or using the
 ``--dns-hover-credentials`` command-line argument. Certbot records the path
 to this file for use during renewal, but does not store the file's contents.
