@@ -18,7 +18,7 @@ You have to have a user, with the rights to administrate the domain's DNS at htt
 This user must have two factor authentication enabled and the TOTP secret must be put into the
 credentitals file (see below) for the plugin to be able to create the TOTP token for login.
 
-Also the domain in questions needs to configured to use the name servers of hover.com to be able to
+Also the domain in questions needs to be configured to use the name servers of hover.com to be able to
 create and delete the TXT records.
 
 .. _Hover: https://www.hover.com/
@@ -58,7 +58,7 @@ Credentials
 An example ``credentials.ini`` file:
 
 .. code-block:: ini
-
+   certbot_dns_hover:dns_hover_hoverurl = https://www.hover.com
    certbot_dns_hover:dns_hover_username = my-hover-admin-username
    certbot_dns_hover:dns_hover_password = very-secure-hover-admin-user-password
    certbot_dns_hover:dns_hover_totpsecret = very-very-secure-2fa-totp-secret

@@ -46,6 +46,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Security',
         'Topic :: System :: Installation/Setup',
@@ -62,5 +63,5 @@ setup(
             'dns-hover = certbot_dns_hover.dns_hover:Authenticator',
         ],
     },
-    test_suite='certbot_dns_ispconfig',
+    test_suite='certbot_dns_hover',
 )
