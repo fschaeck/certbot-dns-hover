@@ -3,7 +3,7 @@ from setuptools import __version__ as setuptools_version
 from setuptools import find_packages
 from setuptools import setup
 
-version = '1.2.0'
+version = '{{VERSION_PLACEHOLDER}}'
 
 install_requires = [
     'acme>=0.29.0',
