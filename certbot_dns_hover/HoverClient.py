@@ -29,33 +29,38 @@ class HoverClient(object):
     """
 
     def __init__(self, hover_base_url, username, password, totpsecret, logger=None):
-        try:
-            if logger is None:
-                logging.basicConfig(level=logging.DEBUG)
-                self.logger = logging.getLogger(__name__)
-            else:
-                self.logger = logger
+        if logger is None:
+            logging.basicConfig(level=logging.DEBUG)
+            self.logger = logging.getLogger(__name__)
+        else:
+            self.logger = logger
 
-            self.logger.info("Creating HoverClient v%s", __VERSION__)
-            self.hover_base_url = hover_base_url
-            self.username = username
-            self.password = password
-            self.totpsecret = totpsecret
-            self.session = Session()
-            self.session.headers.update({
-                'User-Agent': 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0',
-                'Accept': '*/*',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Referer': self.hover_base_url
-                })
-            self.loggedIn = None
+        self.logger.info("Creating HoverClient v%s", __VERSION__)
+        self.hover_base_url = hover_base_url
+        self.username = username
+        self.password = password
+        self.totpsecret = totpsecret
+        self.session = Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Referer': self.hover_base_url
+            })
+        self.loggedIn = None
+        self.domains = None
+
+    def _get_domains(self):
+        if self.domains is not None:
+          return
+        try:
             self._login()
             result = self._request('GET','api/domains','retrieve domain names')
             self.domains = {}
             for domain in result.get('domains',{}):
                 self.domains[domain['domain_name']] = domain
         except BaseException as ex:
-            raise HoverClientException(self, "%s -> Failed to initialize HoverClient.", str(ex)) from ex
+            raise HoverClientException(self, "Failed to retrieve domain list: %s.", str(ex)) from ex
 
     def _get_url(self, action):
         return "{0}/{1}".format(self.hover_base_url,action.lstrip('/'))
@@ -164,10 +169,11 @@ class HoverClient(object):
             self.logger.debug('  looking for %s records %s from domain %s%s',
                               record_type, record_name, domain,
                               ' with content {0}'.format(record_content) if record_content is not None else '')
+
+            self._get_domains()
             if not domain in self.domains:
                 raise HoverClientException(self, "Domain %s does not exist.", domain)
 
-            self._login()
             domain_dns_list = self._request('GET', 'api/domains/{0}/dns'.format(domain), 'retrieve DNS records')
 
             if record_name.endswith("."+domain):
