@@ -4,6 +4,7 @@ DNS admin API at https://www.hover.com
 """
 
 import os
+import sys
 import logging
 import base64
 import hashlib
@@ -11,6 +12,7 @@ import hmac
 import calendar
 import datetime
 import time
+import argparse
 
 from requests import Session
 
@@ -28,9 +30,9 @@ class HoverClient(object):
     Encapsulates all communication with the Hover Domain Administration REST API.
     """
 
-    def __init__(self, hover_base_url, username, password, totpsecret, logger=None):
+    def __init__(self, hover_base_url, username, password, totpsecret, logger=None, log_level=logging.ERROR):
         if logger is None:
-            logging.basicConfig(level=logging.DEBUG)
+            logging.basicConfig(level=log_level)
             self.logger = logging.getLogger(__name__)
         else:
             self.logger = logger
@@ -163,6 +165,18 @@ class HoverClient(object):
         except BaseException as ex:
             raise HoverClientException(self, "%s -> Failed to %s.", str(ex), action_description) from ex;
 
+    def get_root_domain(self, domain):
+        self.logger.debug('  looking for root domain for %s', domain)
+        self._get_domains()
+        root_domain = domain
+        while not root_domain in self.domains:
+            dot = root_domain.find('.')
+            if dot<0:
+                raise HoverClientException(self, "Can not find root domain for %s", domain)
+            else:
+                root_domain = root_domain[dot+1:]
+        self.logger.debug('  --> %s', root_domain)
+        return root_domain
 
     def get_records(self, domain, record_type, record_name, record_content=None):
         try:
@@ -172,7 +186,7 @@ class HoverClient(object):
 
             self._get_domains()
             if not domain in self.domains:
-                raise HoverClientException(self, "Domain %s does not exist.", domain)
+                domain = self.get_root_domain(domain)
 
             domain_dns_list = self._request('GET', 'api/domains/{0}/dns'.format(domain), 'retrieve DNS records')
 
@@ -349,12 +363,48 @@ class HoverClient(object):
 
 
 if __name__ == '__main__':
-    client = HoverClient('https://www.hover.com', os.getenv('HOVER_USER_NAME','xxx'),os.getenv('HOVER_USER_PASSWORD', 'xxx'), os.getenv('HOVER_USER_TOTPSECRET','xxx'))
-    # client.add_record('schaeckermann.net', 'TXT', 'hugo.schaeckermann.net', 'emil')
-    # client.add_record('schaeckermann.net', 'TXT', 'hugo.schaeckermann.net', 'anna')
-    # client.update_record('schaeckermann.net', 'TXT', 'hugo', 'anna', old_record_content='emil', record_ttl=300)
-    # client.delete_record('schaeckermann.net', 'TXT', 'hugo.schaeckermann.net', 'anna')
-    # client.logout()
+    ap = argparse.ArgumentParser()
+    ap.add_argument('cmd',        action='store', type=str, choices=['add','delete','update'], help='Command to execute')
+    ap.add_argument('type',       action='store', type=str, choices=['TXT','MX','CNAME','A','AAA'], help='Type of record to process')
+    ap.add_argument('domain',     action='store', type=str, help='Domain to execute against')
+    ap.add_argument('name',       action='store', type=str, help='Name of record to process')
+    ap.add_argument('value',      action='store', type=str, help='Value to add, delete or update to')
+    ap.add_argument('-t','--ttl', action='store', type=int, default=900, help='TTL value for record')
+    ap.add_argument('-u','--update', action='store', type=str, required=False, help='Old value to update from')
+    args = ap.parse_args()
+    
+    user_name = os.getenv('HOVER_USER_NAME')
+    user_pwd  = os.getenv('HOVER_USER_PASSWORD')
+    user_totp = os.getenv('HOVER_USER_TOTPSECRET')
 
-    client.add_record('doesnotexist.com', 'TXT', 'hugo', 'emil')
-    client.logout()
+    if user_name is None:
+        print("Environment variable HOVER_USER_NAME not set. Aborting...",file=sys.stderr)
+        sys.exit(1)
+
+    if user_pwd is None:
+        print("Environment variable HOVER_USER_PASSWORD not set. Aborting...",file=sys.stderr)
+        sys.exit(1)
+
+    if user_totp is None:
+        print("Environment variable HOVER_USER_TOTPSECRET not set. Aborting...",file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        client = HoverClient('https://www.hover.com', user_name, user_pwd, user_totp)
+
+        root_domain = client.get_root_domain(args.domain)
+        record_name = args.name
+        if record_name.endswith('.'+root_domain):
+            record_name = record_name[:-len(root_domain)-1]
+
+        if args.cmd == 'add':
+            client.add_record(root_domain, args.type, record_name, args.value, record_ttl=args.ttl)
+        elif args.cmd == 'update':
+            client.update_record(root_domain, args.type, record_name, args.value, old_record_content=args.update, record_ttl=args.ttl)
+        elif args.cmd == 'delete':
+            client.delete_record(root_domain, args.type, record_name, args.value)
+    except Exception as e:
+        print("ERROR: %s" % str(e), file=sys.stderr)
+    finally:
+        client.logout()
+
