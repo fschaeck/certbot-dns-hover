@@ -22,7 +22,7 @@ import urllib.parse
 import urllib.error
 import http.cookiejar
 
-__VERSION__ = "1.2.3"
+__VERSION__ = "1.2.4"
 
 class HoverClientException(Exception):
     def __init__(self, logger, msg, *args):
@@ -50,25 +50,8 @@ class Session:
         self.cookie_jar.clear()
 
 
-    def set_cookie(self, cookie_name, cookie_value):
-        self.cookie_jar.set_cookie(http.cookiejar.Cookie(
-            version=0,
-            name=cookie_name,
-            value=cookie_value,
-            port=None,
-            port_specified=False,
-            domain=self.base_url_domain,
-            domain_specified=True,
-            domain_initial_dot=False,
-            path='/',
-            path_specified=True,
-            secure=False,
-            expires=None,
-            discard=True,
-            comment=None,
-            comment_url=None,
-            rest={}
-        ))
+    def set_cookie(self, cookie):
+        self.cookie_jar.set_cookie(cookie)
 
 
     def get_cookie(self, cookie_name):
@@ -151,6 +134,23 @@ class HoverClient(object):
         self.loggedIn = None
         self.domains = None
 
+    def get_cookies(self):
+        return [ {'version': cookie.version,
+                  'name': cookie.name,
+                  'value': cookie.value,
+                  'port': cookie.port,
+                  'domain': cookie.domain,
+                  'path': cookie.path,
+                  'secure': cookie.secure,
+                  'expires': cookie.expires,
+                  'discard': cookie.discard,
+                  'comment': cookie.comment,
+                  'comment_url': cookie.comment_url,
+                  'rfc2109': cookie.rfc2109,
+                  'port_specified': cookie.port_specified,
+                  'domain_specified': cookie.domain_specified,
+                  'domain_initial_dot': cookie.domain_initial_dot,
+                 } for cookie in self.session.cookie_jar ]
 
     def _login(self):
         try:
@@ -172,7 +172,24 @@ class HoverClient(object):
 
             self.logger.info('Logging in as %s', self.username)
             self.session.clear_cookies();
-            self.session.set_cookie('hover_device_id','fcaf98428da8d4affebd')
+            self.session.set_cookie(http.cookiejar.Cookie(
+                version=0,
+                name='hover_device_id',
+                value='0031160fdac747e83248',
+                port=None,
+                port_specified=False,
+                domain='www.hover.com',
+                domain_specified=False,
+                domain_initial_dot=False,
+                path='/signin',
+                path_specified=True,
+                secure=False,
+                expires=time.time()+315532800,
+                discard=False,
+                comment=None,
+                comment_url=None,
+                rfc2109=False, 
+                rest={}))
 
             # Login start: initializing cookie hover_session
             self.session.request('GET', 'signin', 'initialize login session', referer="", ignore_result=True)
@@ -429,7 +446,7 @@ class HoverClient(object):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('cmd',        action='store', type=str, choices=['add','delete','update'], help='Command to execute')
-    ap.add_argument('type',       action='store', type=str, choices=['TXT','MX','CNAME','A','AAA'], help='Type of record to process')
+    ap.add_argument('type',       action='store', type=str, choices=['TXT','MX','CNAME','A','AAAA'], help='Type of record to process')
     ap.add_argument('domain',     action='store', type=str, help='Domain to execute against')
     ap.add_argument('name',       action='store', type=str, help='Name of record to process')
     ap.add_argument('value',      action='store', type=str, help='Value to add, delete or update to')
