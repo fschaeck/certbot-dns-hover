@@ -22,7 +22,7 @@ import urllib.parse
 import urllib.error
 import http.cookiejar
 
-__VERSION__ = "1.2.1"
+__VERSION__ = "1.2.3"
 
 class HoverClientException(Exception):
     def __init__(self, logger, msg, *args):
