@@ -307,15 +307,17 @@ class HoverClient(object):
             self.logger.info("Ensuring %s record %s for domain %s with content %s exists.",
                              record_type, record_name, domain, record_content)
             records = self.get_records(domain, record_type, record_name, record_content)
+            if not domain in self.domains:
+                domain = self.get_root_domain(domain)
             if len(records)==0:
                 self.logger.debug('  inserting new record')
                 self.session.request('POST','api/domains/{0}/dns'.format(domain),
                                      'insert new DNS record',
-                                     data={'content':    record_content,
-                                           'name':       record_name,
-                                           'type':       record_type,
-                                           'ttl':        record_ttl,
-                                          })
+                                     data=[('content',    record_content),
+                                           ('name',       record_name),
+                                           ('type',       record_type),
+                                           ('ttl',        record_ttl),
+                                          ])
                 records = self.get_records(domain, record_type, record_name, record_content)
                 if len(records)==0:
                     raise HoverClientException(self.logger, "Something went wrong when adding %s record %s for domain %s even though there was no error reported.",
