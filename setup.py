@@ -12,6 +12,7 @@ install_requires = [
     'requests',
     'mock',
     'requests-mock',
+    'zope.interface',
 ]
 
 # read the contents of the README file
